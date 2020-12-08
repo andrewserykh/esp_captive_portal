@@ -1,3 +1,15 @@
+/*
+ * V1.1
+ * 
+ * EEPROM bytes:
+ * -------------
+ * 0 - ANG0
+ * 1 - ANG1
+ * 2 - ANG2
+ * 
+ */
+
+#include <EEPROM.h>
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
@@ -22,9 +34,12 @@ bool DI3 = false;
 int DI_MODE = 0;
 bool DI_INVERT = false;
 
-long ANGLE1 = 0;
-long ANGLE2 = 45;
-long ANGLE3 = 90;
+int ANGLE0 = 0;
+int ANGLE1 = 1000;
+int ANGLE2 = 2000;
+
+//временные переменные
+int SetAngleIndex = 0;
 
 void ajaxInputs(){
   String di1on = "";
@@ -86,20 +101,28 @@ void pageSetupInvert(){
 }
 
 void pageSetAngle(){
+  String strAngle = "";
+  if (SetAngleIndex == 0) strAngle = String(ANGLE0);
+  if (SetAngleIndex == 1) strAngle = String(ANGLE1);
+  if (SetAngleIndex == 2) strAngle = String(ANGLE2);
   String contentAngSet = ""
-  "<div>"+String(ANGLE1)+"</div>"
+  "<div>"+strAngle+"</div>"
   "<div style='display: grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(1,2em);'>"
+    "<a href='/motor/set100m' class='s'>-100</a>"
     "<a href='/motor/set10m' class='s'>-10</a>"
-    "<a href='/motor/set1m' class='s'>-1</a>"
-    "<a href='/motor/set1p' class='s'>+1</a>"
     "<a href='/motor/set10p' class='s'>+10</a>"
+    "<a href='/motor/set100p' class='s'>+100</a>"
   "</div>";
   webServer.send(200, "text/html", contentHead + contentAngSet + contentFooter);
-
 }
 
 void setup() {
   Serial.begin(115200);
+  EEPROM.begin(3);
+  ANGLE0 = EEPROM.read(0);
+  ANGLE1 = EEPROM.read(1);
+  ANGLE2 = EEPROM.read(2);
+  
   delay(10);
   Serial.println("Started");
   WiFi.mode(WIFI_AP);
@@ -116,9 +139,80 @@ void setup() {
   webServer.on("/motor",[]() {
     webServer.send(200, "text/html", contentHead + contentMotor + contentFooter);
   });
-  webServer.on("/motor/ang1", pageSetAngle);
   
+  webServer.on("/motor/ang0", [](){
+    SetAngleIndex = 0;
+    pageSetAngle();
+  });
+    webServer.on("/motor/ang1", [](){
+    SetAngleIndex = 1;
+    pageSetAngle();
+  });
+  webServer.on("/motor/ang2", [](){
+    SetAngleIndex = 2;
+    pageSetAngle();
+  });
 
+  webServer.on("/motor/set100m", [](){
+    if (SetAngleIndex==0){
+      ANGLE0 = ANGLE0 - 100;      
+      if (ANGLE0<0) ANGLE0 = 0;
+      EEPROM.write(0, ANGLE0);
+    } else if (SetAngleIndex==1) {
+      ANGLE1 = ANGLE1 - 100;
+      if (ANGLE1<0) ANGLE1 = 0;
+      EEPROM.write(1, ANGLE1);      
+    } else if (SetAngleIndex==2) {
+      ANGLE2 = ANGLE2 - 100;
+      if (ANGLE2<0) ANGLE2 = 0;
+      EEPROM.write(2, ANGLE2);
+    }
+    pageSetAngle();
+  });
+  webServer.on("/motor/set10m", [](){
+    if (SetAngleIndex==0){
+      ANGLE0 = ANGLE0 - 10;      
+      if (ANGLE0<0) ANGLE0 = 0;
+      EEPROM.write(0, ANGLE0);
+    } else if (SetAngleIndex==1) {
+      ANGLE1 = ANGLE1 - 10;
+      if (ANGLE1<0) ANGLE1 = 0;
+      EEPROM.write(1, ANGLE1);
+    } else if (SetAngleIndex==2) {
+      ANGLE2 = ANGLE2 - 10;
+      if (ANGLE2<0) ANGLE2 = 0;
+      EEPROM.write(2, ANGLE2);
+    }
+    pageSetAngle();
+  });
+  webServer.on("/motor/set100p", [](){
+    if (SetAngleIndex==0){
+      ANGLE0 = ANGLE0 + 100;
+      EEPROM.write(0, ANGLE0);      
+    } else if (SetAngleIndex==1){
+      ANGLE1 = ANGLE1 + 100;
+      EEPROM.write(1, ANGLE1);
+    } else if (SetAngleIndex==2){
+      ANGLE2 = ANGLE2 + 100;
+      EEPROM.write(2, ANGLE2);
+    }
+    pageSetAngle();
+  });
+  webServer.on("/motor/set10p", [](){
+    if (SetAngleIndex==0){
+      ANGLE0 = ANGLE0 + 10;
+      EEPROM.write(0, ANGLE0);      
+      if (ANGLE0<0) ANGLE0 = 0;
+    } else if (SetAngleIndex==1){
+      ANGLE1 = ANGLE1 + 10;
+      EEPROM.write(1, ANGLE1);
+    } else if (SetAngleIndex==2){
+      ANGLE2 = ANGLE2 + 10;
+      EEPROM.write(2, ANGLE2);
+    }
+    pageSetAngle();
+  });
+  
   webServer.on("/ajaxinputs", ajaxInputs);
 
   webServer.onNotFound([]() {

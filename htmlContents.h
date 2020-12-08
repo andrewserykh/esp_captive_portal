@@ -46,13 +46,13 @@ String contentMain= "";
 String contentMotor= ""
   "<div class='t0'>УСТАНОВКА УГЛА ПОВОРОТА</div>"
   "<div style='display: grid;grid-template-columns:repeat(1,1fr);grid-template-rows:repeat(1,2em);'>"
-    "<a href='/motor/ang1' class='s'>ЗАДАНИЕ НАЧАЛЬНОГО ПОЛОЖЕНИЯ</a>"
+    "<a href='/motor/ang0' class='s'>ЗАДАНИЕ НАЧАЛЬНОГО ПОЛОЖЕНИЯ</a>"
   "</div>"
   "<div style='display: grid;grid-template-columns:repeat(1,1fr);grid-template-rows:repeat(1,2em);'>"
-    "<a href='/motor/ang2' class='s'>ЗАДАНИЕ ПОЗИЦИИ 1</a>"
+    "<a href='/motor/ang1' class='s'>ЗАДАНИЕ ПОЗИЦИИ 1</a>"
   "</div>"
   "<div style='display: grid;grid-template-columns:repeat(1,1fr);grid-template-rows:repeat(1,2em);'>"
-    "<a href='/motor/ang3' class='s'>ЗАДАНИЕ ПОЗИЦИИ 2</a>"
+    "<a href='/motor/ang2' class='s'>ЗАДАНИЕ ПОЗИЦИИ 2</a>"
   "</div>";
 
 String contentFooter = ""
